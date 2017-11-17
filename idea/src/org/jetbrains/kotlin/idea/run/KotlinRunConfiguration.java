@@ -68,11 +68,12 @@ import java.util.*;
 public class KotlinRunConfiguration extends JetRunConfiguration {
     public String VM_PARAMETERS;
     public String PROGRAM_PARAMETERS;
+    public String WORKING_DIRECTORY;
+
     public boolean ALTERNATIVE_JRE_PATH_ENABLED;
     public String ALTERNATIVE_JRE_PATH;
-    public boolean PASS_PARENT_ENVS = true;
-
     private Map<String, String> myEnvs = new LinkedHashMap<String, String>();
+    public boolean PASS_PARENT_ENVS = true;
 
     public KotlinRunConfiguration(String name, JavaRunConfigurationModule runConfigurationModule, ConfigurationFactory factory) {
         super(name, runConfigurationModule, factory);
@@ -116,7 +117,10 @@ public class KotlinRunConfiguration extends JetRunConfiguration {
     public void writeExternal(Element element) throws WriteExternalException {
         super.writeExternal(element);
         JavaRunConfigurationExtensionManager.getInstance().writeExternal(this, element);
-        DefaultJDOMExternalizer.writeExternal(this, element);
+
+        //DefaultJDOMExternalizer.writeExternal(this, element); Revert after JetRunConfiguration drop
+        writeExternal(this, JetRunConfiguration.class.getDeclaredFields(), element, null);
+        writeExternal(this, KotlinRunConfiguration.class.getDeclaredFields(), element, null);
 
         writeModule(element);
         EnvironmentVariablesComponent.writeExternal(element, getEnvs());
@@ -141,6 +145,16 @@ public class KotlinRunConfiguration extends JetRunConfiguration {
     @Override
     public String getProgramParameters() {
         return PROGRAM_PARAMETERS;
+    }
+
+    @Override
+    public void setWorkingDirectory(String value) {
+        WORKING_DIRECTORY = ExternalizablePath.urlValue(value);
+    }
+
+    @Override
+    public String getWorkingDirectory() {
+        return ExternalizablePath.localPathValue(WORKING_DIRECTORY);
     }
 
     @Override
